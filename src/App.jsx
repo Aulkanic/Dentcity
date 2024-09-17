@@ -3,6 +3,11 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { RouterUrl } from './routes';
 import { AdminSide, Public } from './layout';
 import { LoginPage } from './pages/index'
+import { Dashboard } from './pages/private/dashboard';
+import { PatientRecords } from './pages/private/records';
+import { PatientDetails } from './pages/private/records/patientDetails';
+import { ServicesPage } from './pages/private/services';
+import { Appointments } from './pages/private/appointments';
 
 function App() {
   const router = createBrowserRouter([
@@ -17,7 +22,11 @@ function App() {
       path: RouterUrl.Login,
       element:<AdminSide />,
       children:[
-        
+        { path: RouterUrl.Dashboard, element: <Dashboard />},
+        { path: RouterUrl.Record, element: <PatientRecords />},
+        { path: RouterUrl.PatientRecord, element: <PatientDetails />},
+        { path: RouterUrl.Services, element: <ServicesPage />},
+        { path: RouterUrl.Appointments, element: <Appointments />},
       ]
     }
   ])

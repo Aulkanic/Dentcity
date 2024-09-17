@@ -5,22 +5,45 @@
 @tailwind utilities;
 
 
-.description-label {
-    font-weight: bold;
-    color: white;
-  }
-  
-  .descriptions-item {
-    font-weight: normal;
-    color: white; /* Ensures that the value text is white */
-  }
+.custom-menu .ant-menu-item {
+  color: black !important;
+  width: 98%;
+  font-size: 28px;
+  text-align: left;
+  margin-left: 2px;
+  margin-right: 4px;
+  margin-bottom: 20px;
+}
 
-  :where(.css-dev-only-do-not-override-1c0na6j).ant-tabs .ant-tabs-tab-btn{
-    color: white !important;
-  }
+.custom-menu .ant-menu-item-selected {
+  background-color: #4e38f5 !important;
+  color: white !important;
+  border-radius: 8px;
+}
 
-  /* In your CSS file */
-.ads-container {
-  width: 300px;
-  height: 250px;
+.custom-menu .ant-menu-item:hover {
+  color: #4e38f5 !important;
+}
+
+.ant-calendar-date-cell {
+  min-height: 80px; /* Adjust the height */
+  min-width: 80px;  /* Adjust the width */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+}
+
+.ant-calendar-date {
+  font-size: 18px; /* Adjust the font size */
+}
+
+.appointment-details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.appointment-item {
+  margin-bottom: 5px;
 }
