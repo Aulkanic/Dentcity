@@ -35,22 +35,24 @@ export const LoginPage: React.FC = () => {
   };
 
   const handleLogin = async (values: { email: string; password: string }) => {
+    console.log('Login values:', values); // Log for debugging
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
       message.success('Login successful!');
-      navigate(RouterUrl.Dashboard)
+      navigate(RouterUrl.Dashboard);
     } catch (error: any) {
       message.error(error.message || 'Login failed');
     } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h1 className="text-8xl font-bold text-center text-sky-600">Dentcity</h1>
+      <div className="bg-white p-2 md:p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h1 className="text-4xl md:text-8xl font-bold text-center text-sky-600">Dentcity</h1>
         <p className='w-full text-center mb-6 font-semibold text-red-400'>Dental Clinic</p>
         <Form
           layout="vertical"
