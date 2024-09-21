@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Modal, Table, Form, Input, TimePicker, Select, Button, notification, Spin } from 'antd';
-import { getDocs, collection, addDoc } from 'firebase/firestore';
+import { getDocs, collection, addDoc, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../../db'; // Adjust the import path as necessary
 import { Calendar as BigCalendar, dateFnsLocalizer } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
@@ -75,6 +75,7 @@ export const Appointments = () => {
         location,
         service,
         createdAt: dayjs().format(),
+        status:'Pending'
       });
 
       notification.success({
@@ -104,11 +105,59 @@ export const Appointments = () => {
     service: appt.service,
   }));
 
+  // Check if the selected date already has an appointment
+  const hasAppointmentOnDate = (date) => {
+    return appointments.some(appt => appt.date === format(date, 'yyyy-MM-dd'));
+  };
+
   // Handle event selection
   const handleSelectEvent = (event) => {
-    setSelectedDate(format(event.start, 'yyyy-MM-dd'));
-    setIsConfirming(true);
+    notification.info({
+      message: 'Appointment Info',
+      description: `You have an appointment on ${format(event.start, 'yyyy-MM-dd')}.`,
+    });
   };
+
+  // Handle date slot selection
+  const handleSelectSlot = (slotInfo) => {
+    const date = slotInfo.start;
+    if (hasAppointmentOnDate(date)) {
+      notification.error({
+        message: 'Date Unavailable',
+        description: `This date (${format(date, 'yyyy-MM-dd')}) already has an appointment.`,
+      });
+    } else {
+      setSelectedDate(format(date, 'yyyy-MM-dd'));
+      setIsConfirming(true);
+    }
+  };
+
+  const handleStatusChange = async (appointmentId, newStatus) => {
+    setLoading(true);
+    try {
+      // Get a reference to the specific appointment document
+      const appointmentRef = doc(db, 'appointments', appointmentId);
+      
+      // Update the appointment's status
+      await updateDoc(appointmentRef, { status: newStatus });
+
+      notification.success({
+        message: 'Success',
+        description: 'Appointment status updated successfully!',
+      });
+
+      fetchAppointmentsAndPatients(); // Refresh the data
+    } catch (error) {
+      console.error('Error updating status:', error);
+      notification.error({
+        message: 'Error',
+        description: 'Failed to update appointment status.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
 
   return (
     <div className="p-6 mx-auto">
@@ -137,7 +186,22 @@ export const Appointments = () => {
                   const patient = patients.find(p => p.id === record.patientId);
                   return patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown';
                 }
-              }
+              },
+              {
+                title: 'Status',
+                key: 'status',
+                render: (_, record) => (
+                  <Select
+                    value={record.status}
+                    className='w-32'
+                    onChange={(value) => handleStatusChange(record.id, value)}
+                  >
+                    <Select.Option value="Scheduled">Scheduled</Select.Option>
+                    <Select.Option value="Completed">Completed</Select.Option>
+                    <Select.Option value="Cancelled">Cancelled</Select.Option>
+                  </Select>
+                ),
+              },
             ]}
             rowKey="id"
             pagination={false}
@@ -158,6 +222,8 @@ export const Appointments = () => {
               startAccessor="start"
               endAccessor="end"
               style={{ height: 600 }}
+              selectable
+              onSelectSlot={handleSelectSlot}
               onSelectEvent={handleSelectEvent}
             />
           </Modal>

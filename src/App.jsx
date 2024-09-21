@@ -8,6 +8,7 @@ import { PatientRecords } from './pages/private/records';
 import { PatientDetails } from './pages/private/records/patientDetails';
 import { ServicesPage } from './pages/private/services';
 import { Appointments } from './pages/private/appointments';
+import { Reports } from './pages/private/reports';
 
 function App() {
   const router = createBrowserRouter([
@@ -27,6 +28,7 @@ function App() {
         { path: RouterUrl.PatientRecord, element: <PatientDetails />},
         { path: RouterUrl.Services, element: <ServicesPage />},
         { path: RouterUrl.Appointments, element: <Appointments />},
+        { path: RouterUrl.Reports, element: <Reports />},
       ]
     }
   ])

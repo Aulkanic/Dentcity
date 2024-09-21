@@ -56,7 +56,7 @@ export default function AdminSide() {
               },
               {
                 label: "Reports",
-                key: RouterUrl.AdminUsersManage,
+                key: RouterUrl.Reports,
               },
             ]}
           />

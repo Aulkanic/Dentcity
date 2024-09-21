@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import { Button, Form, Input, message, Modal } from 'antd';
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../../db';
+import { useNavigate } from 'react-router-dom';
+import { RouterUrl } from '../../../routes';
 
 export const LoginPage: React.FC = () => {
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(false);
   const [isForgotPasswordModalVisible, setIsForgotPasswordModalVisible] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
@@ -36,6 +39,7 @@ export const LoginPage: React.FC = () => {
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
       message.success('Login successful!');
+      navigate(RouterUrl.Dashboard)
     } catch (error: any) {
       message.error(error.message || 'Login failed');
     } finally {

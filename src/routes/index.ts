@@ -7,7 +7,7 @@ export const RouterUrl = {
     PatientRecord:'/Dashboard/Record/patients/:id',
     Services:'/Dashboard/Services',
     Appointments:'/Dashboard/Appointments',
-    UserProfile:'/Dashboard/User/Profile/:uid',
+    Reports:'/Dashboard/Report',
     AdminHome:'/Dashboard/Admin/Home',
     AdminCard:'/Dashboard/Admin/Cards',
     AdminUsersManage:'/Dashboard/Admin/Users',

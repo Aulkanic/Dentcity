@@ -215,8 +215,8 @@ export const PatientDetails = () => {
               >
                 <Select>
                   {services.map((service) => (
-                    <Select.Option key={service.id} value={service.name}>
-                      {service.name}
+                    <Select.Option key={service.id} value={service.serviceName}>
+                      {service.serviceName}
                     </Select.Option>
                   ))}
                 </Select>
