@@ -10,6 +10,5 @@ export default function Public() {
   <div>
   <Outlet />
 </div>
-</div>
 )
 }
