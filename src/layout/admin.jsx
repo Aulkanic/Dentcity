@@ -9,9 +9,14 @@ import {
   Modal,
   Popover,
 } from "antd";
+import {
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+} from '@ant-design/icons';
+import { BsClipboard2Data } from "react-icons/bs";
 import { Outlet, useNavigate } from "react-router-dom";
 import { RouterUrl } from "../routes";
-import { IoNotificationsSharp } from "react-icons/io5";
+import { IoHomeOutline, IoNotificationsSharp } from "react-icons/io5";
 import { useState } from "react";
 import {
   EmailAuthProvider,
@@ -21,12 +26,16 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { auth } from "../db";
+import { BiCalendarEvent } from "react-icons/bi";
+import { RiServiceFill } from "react-icons/ri";
+import { HiDocumentReport } from "react-icons/hi";
 
 const { Sider, Content } = Layout;
 
 export default function AdminSide() {
   const navigate = useNavigate();
   const [form] = Form.useForm()
+  const [collapsed,setCollapsed]= useState(false)
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const user = auth.currentUser;
@@ -94,10 +103,10 @@ export default function AdminSide() {
 
   return (
     <Layout className="min-h-screen w-full">
-      <Sider width="15%" style={siderStyle}>
-        <div className="h-40 flex flex-col justify-center items-center">
-          <h1 className="text-6xl font-bold text-sky-600">Dentcity</h1>
-          <p className="font-semibold text-xl text-red-400">Dental Clinic</p>
+      <Sider width={'max-content'} breakpoint="lg" style={siderStyle} trigger={null} collapsed={collapsed}>
+        <div className="h-40 flex flex-col justify-center items-center p-4 md:p-0">
+          <h1 className={`${collapsed ? 'text-xl text-wrap' : 'text-6xl'} font-bold text-sky-600`}>Dentcity</h1>
+          <p className={`${collapsed ? 'text-md text-wrap' : 'text-xl'} font-semibold text-xl text-red-400`}>Dental Clinic</p>
         </div>
         <Menu
           style={{ background: "white", color: "black" }}
@@ -108,32 +117,47 @@ export default function AdminSide() {
             {
               label: "Home",
               key: RouterUrl.Dashboard,
+              icon:<IoHomeOutline size={30}  />
             },
             {
               label: "Appointment",
               key: RouterUrl.Appointments,
+              icon: <BiCalendarEvent size={30} />
             },
             {
               label: "Records",
               key: RouterUrl.Record,
+              icon:<BsClipboard2Data size={30} />
             },
             {
               label: "Services",
               key: RouterUrl.Services,
+              icon:<RiServiceFill size={30} />
             },
             {
               label: "Reports",
               key: RouterUrl.Reports,
+              icon:<HiDocumentReport size={30} />
             },
           ]}
         />
       </Sider>
       <Layout className="w-full">
-        <Content style={{ padding: "24px", background: "#A2DCF3" }}>
-          <div className="flex justify-between items-center mb-12">
+        <Content style={{ background: "#A2DCF3" }} className="p-2 h-max">
+          <div className="flex justify-between flex-col md:flex-row items-center mb-12">
+            <div className="flex gap-2 flex-col md:flex-row items-start md:items-center">
+            <Button
+            type="text"
+            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            onClick={() => setCollapsed(!collapsed)}
+            style={{
+              fontSize: '16px',
+            }}
+          />
             <h1 className="text-xl font-bold tracking-widest">
               Welcome Administrator!
             </h1>
+            </div>
             <div className="flex gap-4 items-center">
               <IoNotificationsSharp size={30} color="white" />
               <div className="flex gap-4 items-center">
