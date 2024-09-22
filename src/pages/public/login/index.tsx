@@ -57,7 +57,7 @@ export const LoginPage: React.FC = () => {
         <Form
           layout="vertical"
           onFinish={handleLogin}
-          className="space-y-4"
+          className="space-y-4 z-50"
         >
           <Form.Item
             label="Email"
