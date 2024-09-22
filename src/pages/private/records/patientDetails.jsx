@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Form, Input, Button, Table, Modal, notification, Spin, TimePicker, Select, Descriptions, Tag } from 'antd';
+import { Form, Input, Button, Table, Modal, notification, TimePicker, Select, Descriptions, Tag } from 'antd';
 import { getDoc, doc, collection, addDoc, getDocs } from 'firebase/firestore';
 import { db } from '../../../db';
 import { Calendar as BigCalendar, momentLocalizer } from 'react-big-calendar';
@@ -115,11 +115,11 @@ export const PatientDetails = () => {
     allDay: false
   }));
 
+  if(loading){
+    return <div className=" w-full min-h-[700px] flex justify-center items-center"><p className="loader" /></div>
+  }
   return (
     <div className="p-6 mx-auto">
-      {loading ? (
-        <Spin />
-      ) : (
         <div>
           <div className='flex justify-between items-center mb-4'>
             <h1 className='text-4xl font-bold'>Patient Records</h1>
@@ -229,7 +229,6 @@ export const PatientDetails = () => {
             </Form>
           </Modal>
         </div>
-      )}
     </div>
   );
 };

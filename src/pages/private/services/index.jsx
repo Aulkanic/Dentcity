@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from 'react';
-import { Form, Input, Button, Table, Modal, notification, Spin } from 'antd';
+import { Form, Input, Button, Table, Modal, notification } from 'antd';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs } from 'firebase/firestore';
 import { db } from '../../../db'; // Adjust the path according to your project structure
 
@@ -129,6 +130,10 @@ export const ServicesPage = () => {
     },
   ];
 
+  if(loading){
+    return <div className=" w-full min-h-[700px] flex justify-center items-center"><p className="loader" /></div>
+  }
+
   return (
     <div className="p-6 mx-auto">
       {/* Table to display services */}
@@ -138,17 +143,15 @@ export const ServicesPage = () => {
           Add Service
         </Button>
       </div>
-      {loading ? (
-        <Spin />
-      ) : (
+        <div className='w-full flex justify-center items-center'>
         <Table
           dataSource={services}
           columns={columns}
           rowKey="id"
           pagination={{ pageSize: 5 }}
-          className="bg-white shadow-md rounded-md"
+          className="bg-white shadow-md rounded-md custom-table w-1/2"
         />
-      )}
+        </div>
 
       {/* Modal for adding or editing a service */}
       <Modal

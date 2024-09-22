@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, Table, Form, Input, TimePicker, Select, Button, notification, Spin } from 'antd';
+import { Modal, Table, Form, Input, TimePicker, Select, Button, notification } from 'antd';
 import { getDocs, collection, addDoc, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../../db'; // Adjust the import path as necessary
 import { Calendar as BigCalendar, dateFnsLocalizer } from 'react-big-calendar';
@@ -158,17 +158,18 @@ export const Appointments = () => {
     }
   };
   
+  if(loading){
+    return <div className=" w-full min-h-[700px] flex justify-center items-center"><p className="loader" /></div>
+  }
 
   return (
-    <div className="p-6 mx-auto">
-      {loading ? (
-        <Spin />
-      ) : (
-        <>
+        <div>
           {/* Button to open calendar modal */}
+          <div className='flex w-full justify-end'>
           <Button type="primary" onClick={() => setIsCalendarVisible(true)} className="mb-4">
             Add Appointment
           </Button>
+          </div>
 
           {/* Table of all appointments */}
           <Table
@@ -205,7 +206,7 @@ export const Appointments = () => {
             ]}
             rowKey="id"
             pagination={false}
-            className="mb-4 bg-white shadow-md rounded-md"
+            className="custom-table mb-4 bg-white shadow-md rounded-md"
           />
 
           {/* Calendar Modal for selecting date */}
@@ -231,7 +232,7 @@ export const Appointments = () => {
           {/* Appointment Details Form Modal */}
           <Modal
             title={`Add Appointment for ${selectedDate}`}
-            visible={isConfirming}
+            open={isConfirming}
             onCancel={() => setIsConfirming(false)}
             footer={null}
           >
@@ -280,8 +281,6 @@ export const Appointments = () => {
               </Form>
             </div>
           </Modal>
-        </>
-      )}
-    </div>
+        </div>
   );
 };

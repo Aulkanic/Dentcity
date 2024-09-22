@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Spin, notification, Card } from 'antd';
+import { notification, Card } from 'antd';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../../db'; // Adjust the import path as necessary
 import { currencyFormat } from '../../../utils/utils';
@@ -87,21 +87,21 @@ export const Reports = () => {
   const totalIncome = incomeData.reduce((sum, data) => sum + data.totalIncome, 0);
   const totalAppointments = incomeData.reduce((sum, data) => sum + data.appointmentCount, 0);
 
+  if(loading){
+    return <div className=" w-full min-h-[700px] flex justify-center items-center"><p className="loader" /></div>
+  }
   return (
     <div className="p-6 mx-auto">
-      {loading ? (
-        <Spin />
-      ) : (
-        <>
+
           <div className="flex gap-4 mb-6">
             {/* Summary Statistics */}
-            <Card title="Summary Statistics" className="w-1/3">
+            <Card title="Summary Statistics" className="w-1/3 custom-cardHeader">
               <p>Total Income: {currencyFormat(totalIncome)}</p>
               <p>Total Appointments: {totalAppointments}</p>
             </Card>
 
             {/* Pie Chart */}
-            <Card title="Income Distribution" className="w-2/3">
+            <Card title="Income Distribution" className="w-2/3 custom-cardHeader">
               <ResponsiveContainer width="100%" height={400}>
                 <PieChart>
                   <Pie
@@ -134,8 +134,6 @@ export const Reports = () => {
               <Line type="monotone" dataKey="appointmentCount" stroke="#82ca9d" name="Appointment Count" />
             </LineChart>
           </ResponsiveContainer>
-        </>
-      )}
     </div>
   );
 };

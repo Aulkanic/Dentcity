@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from 'react';
-import { Form, Input, Button, Table, Modal, Select, Spin, notification } from 'antd';
+import { Form, Input, Button, Table, Modal, Select, notification } from 'antd';
 import { addDoc, collection, doc, updateDoc, getDocs } from 'firebase/firestore';
 import dayjs from 'dayjs';
 import { db } from '../../../db';
@@ -104,11 +104,11 @@ export const PatientRecords = () => {
     {
       title: 'Actions',
       render: (text, record) => (
-        <div>
-        <Button type="link" onClick={() => handleEditPatient(record)}>
+        <div className='space-x-4'>
+        <Button type="primary" onClick={() => handleEditPatient(record)}>
           Edit
         </Button>
-        <Button type="link" onClick={() => navigateToPatientDetails(record.id)}>
+        <Button type="default" onClick={() => navigateToPatientDetails(record.id)}>
           View
         </Button>
       </div>
@@ -140,7 +140,9 @@ export const PatientRecords = () => {
     setIsModalVisible(false);
     form.resetFields();
   };
-
+  if(loading){
+    return <div className=" w-full min-h-[700px] flex justify-center items-center"><p className="loader" /></div>
+  }
   return (
     <div className="p-6 mx-auto">
       {/* Table to display patients */}
@@ -150,17 +152,14 @@ export const PatientRecords = () => {
           Add Patient
         </Button>
       </div>
-      {loading ? (
-        <Spin />
-      ) : (
         <Table
           dataSource={patients}
           columns={columns}
           rowKey="id"
           pagination={{ pageSize: 5 }}
-          className="bg-white shadow-md rounded-md"
+          className="bg-white shadow-md rounded-md custom-table"
         />
-      )}
+      
 
       {/* Modal for adding or editing a patient */}
       <Modal

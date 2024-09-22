@@ -5,6 +5,7 @@ import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
 import { db } from "../../../db";
 
 export const Dashboard = () => {
+  const [loading,setLoading] = useState(false)
   const [appointments, setAppointments] = useState([]);
   const [todayAppointments, setTodayAppointments] = useState([]);
   const [totalAppointments, setTotalAppointments] = useState(0);
@@ -14,6 +15,7 @@ export const Dashboard = () => {
 
   // Function to fetch all appointments
   const fetchAppointments = async () => {
+    setLoading(true)
     const q = query(collection(db, "appointments"), orderBy("date", "desc"));
     const querySnapshot = await getDocs(q);
     const allAppointments = querySnapshot.docs.map((doc) => doc.data());
@@ -49,6 +51,7 @@ export const Dashboard = () => {
         ...doc.data(),
       }))
     );
+    setLoading(false)
   };
 
   // Fetch data on component mount
@@ -79,6 +82,10 @@ export const Dashboard = () => {
       },
     },
   ];
+
+  if(loading){
+    return <div className=" w-full min-h-[700px] flex justify-center items-center"><p className="loader" /></div>
+  }
 
   return (
     <div className="p-4">
@@ -134,13 +141,14 @@ export const Dashboard = () => {
             dataSource={appointments}
             pagination={false}
             rowKey="id"
-            className="shadow-md"
+            className="shadow-md custom-table"
           />
         </div>
 
         {/* Right Side - Today's Appointments List */}
-        <div className="md:col-span-1 bg-white rounded-md p-4">
+        <div className="md:col-span-1 bg-white rounded-t-md overflow-hidden">
           <List
+            className="custom-list text-center rounded-t-md"
             header={<div>Appointments Today</div>}
             dataSource={todayAppointments.slice(
               (currentPage - 1) * pageSize,
@@ -166,6 +174,7 @@ export const Dashboard = () => {
           <Pagination
             current={currentPage}
             pageSize={pageSize}
+            align="center"
             total={todayAppointments.length}
             onChange={handlePageChange}
           />
