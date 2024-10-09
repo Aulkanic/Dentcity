@@ -20,6 +20,7 @@ const localizer = dateFnsLocalizer({
 export const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [patients, setPatients] = useState([]);
+  const [services, setServices] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [isCalendarVisible, setIsCalendarVisible] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -45,6 +46,13 @@ export const Appointments = () => {
         id: doc.id,
         ...doc.data(),
       })));
+      const serviceSnapshot = await getDocs(collection(db, 'services'));
+      const servicesList = serviceSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      servicesList.shift()
+      setServices(servicesList)
     } catch (error) {
       console.error('Error fetching data:', error);
       notification.error({
@@ -271,7 +279,13 @@ export const Appointments = () => {
                   name="service"
                   rules={[{ required: true, message: 'Please enter the service!' }]}
                 >
-                  <Input />
+                                <Select>
+                  {services.map((service) => (
+                    <Select.Option key={service.id} value={service.serviceName}>
+                      {service.serviceName}
+                    </Select.Option>
+                  ))}
+                </Select>
                 </Form.Item>
                 <Form.Item>
                   <Button type="primary" htmlType="submit" loading={loading}>
