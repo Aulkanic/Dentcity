@@ -1,5 +1,6 @@
 import {
   Avatar,
+  Badge,
   Button,
   Form,
   Input,
@@ -17,7 +18,7 @@ import { BsClipboard2Data } from "react-icons/bs";
 import { Outlet, useNavigate } from "react-router-dom";
 import { RouterUrl } from "../routes";
 import { IoHomeOutline, IoNotificationsSharp } from "react-icons/io5";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   EmailAuthProvider,
   reauthenticateWithCredential,
@@ -25,19 +26,21 @@ import {
   updatePassword,
   updateProfile,
 } from "firebase/auth";
-import { auth } from "../db";
+import { auth, db } from "../db";
 import { BiCalendarEvent } from "react-icons/bi";
 import { RiServiceFill } from "react-icons/ri";
 import { HiDocumentReport } from "react-icons/hi";
+import { collection, onSnapshot } from "firebase/firestore";
 
 const { Sider, Content } = Layout;
 
 export default function AdminSide() {
   const navigate = useNavigate();
-  const [form] = Form.useForm()
-  const [collapsed,setCollapsed]= useState(false)
+  const [form] = Form.useForm();
+  const [collapsed, setCollapsed] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [notifications, setNotifications] = useState([]); // State for notifications
   const user = auth.currentUser;
 
   const siderStyle = {
@@ -81,7 +84,7 @@ export default function AdminSide() {
       }
 
       message.success("Updated Successfully");
-      form.resetFields()
+      form.resetFields();
       setIsOpen(false);  // Close the modal after success
     } catch (error) {
       console.error(error);
@@ -100,6 +103,22 @@ export default function AdminSide() {
       setLoading(false);
     }
   };
+
+  // Fetch notifications in real-time
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'notifications'), (snapshot) => {
+      const notificationsList = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      // Sort notifications by createdAt in descending order
+      notificationsList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      notificationsList.shift()
+      setNotifications(notificationsList);
+    });
+
+    return () => unsubscribe(); // Cleanup subscription on unmount
+  }, []);
 
   return (
     <Layout className="min-h-screen w-full">
@@ -146,47 +165,66 @@ export default function AdminSide() {
         <Content style={{ background: "#A2DCF3" }} className="p-2 h-max">
           <div className="flex justify-between flex-col md:flex-row items-center mb-12">
             <div className="flex gap-2 flex-col md:flex-row items-start md:items-center">
-            <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
-            style={{
-              fontSize: '16px',
-            }}
-          />
-            <h1 className="text-xl font-bold tracking-widest">
-              Welcome Administrator!
-            </h1>
+              <Button
+                type="text"
+                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                onClick={() => setCollapsed(!collapsed)}
+                style={{
+                  fontSize: '16px',
+                }}
+              />
+              <h1 className="text-xl font-bold tracking-widest">
+                Welcome Administrator!
+              </h1>
             </div>
             <div className="flex gap-4 items-center">
-              <IoNotificationsSharp size={30} color="white" />
-              <div className="flex gap-4 items-center">
-                <div>
-                  <p className="font-bold text-xl">{user?.displayName}</p>
-                  <p>Administrator</p>
-                </div>
-                <Popover
-                  placement="bottomRight"
-                  content={
-                    <div className="w-32 p-0">
-                      <p
-                        className="hover:bg-[#4e38f5] hover:text-white cursor-pointer p-2 rounded-md"
-                        onClick={() => setIsOpen(true)}
-                      >
-                        Profile
-                      </p>
-                      <p
-                        className="hover:bg-[#4e38f5] hover:text-white cursor-pointer p-2 rounded-md"
-                        onClick={() => navigate(RouterUrl.Login)}
-                      >
-                        Logout
-                      </p>
-                    </div>
-                  }
-                >
-                  <Avatar size={40} className="cursor-pointer" />
-                </Popover>
-              </div>
+            <div className="relative pt-2">
+              
+              <Popover
+                content={
+                  <div className="w-80 p-2">
+                    <h3 className="font-bold">Notifications</h3>
+                    {notifications.length === 0 ? (
+                      <p>No new notifications</p>
+                    ) : (
+                      notifications.map(notification => (
+                        <div key={notification.id} className="border-b py-2">
+                          <p>{notification.message}</p>
+                          <small>{new Date(notification.createdAt).toLocaleString()}</small>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                }
+                trigger="click"
+              >
+               <Badge count={notifications.length}>
+               <IoNotificationsSharp size={30} color="white" className="cursor-pointer" />
+               </Badge>
+              </Popover>
+            </div>
+              <Popover
+                placement="bottomRight"
+                content={(
+                  <div className="w-32 p-0">
+                    <p
+                      className="hover:bg-[#4e38f5] hover:text-white cursor-pointer p-2 rounded-md"
+                      onClick={() => setIsOpen(true)}
+                    >
+                      Profile
+                    </p>
+                    <p
+                      className="hover:bg-[#4e38f5] hover:text-white cursor-pointer p-2 rounded-md"
+                      onClick={() => navigate(RouterUrl.Login)}
+                    >
+                      Logout
+                    </p>
+                  </div>
+                )}
+              >
+                <Avatar size={40} className="cursor-pointer" />
+              </Popover>
+            
             </div>
           </div>
           <div>

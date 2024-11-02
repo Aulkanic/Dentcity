@@ -7,8 +7,6 @@ export const{
     logoutAdmin,
     saveUserInfo,
     logoutUser,
-    selectChats,
-    setOpenChats
 } = storeProvider
 
 export { selector, storeProvider };

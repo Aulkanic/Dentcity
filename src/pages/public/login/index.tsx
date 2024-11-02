@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { Button, Form, Input, message, Modal } from 'antd';
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../../db';
+import { auth, db } from '../../../db';
 import { useNavigate } from 'react-router-dom';
 import { RouterUrl } from '../../../routes';
+import { Link } from 'react-router-dom'; // Import Link for navigation
+import { doc, getDoc } from 'firebase/firestore';
+import { saveUserInfo } from '../../../zustand/store/store.provider';
 
 export const LoginPage: React.FC = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isForgotPasswordModalVisible, setIsForgotPasswordModalVisible] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
@@ -29,7 +32,6 @@ export const LoginPage: React.FC = () => {
     setIsForgotPasswordModalVisible(true);
   };
 
-  // Close the forgot password modal
   const handleCancelForgotPassword = () => {
     setIsForgotPasswordModalVisible(false);
   };
@@ -38,16 +40,40 @@ export const LoginPage: React.FC = () => {
     console.log('Login values:', values); // Log for debugging
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, values.email, values.password);
-      message.success('Login successful!');
-      navigate(RouterUrl.Dashboard);
+      // Sign in the user
+      const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
+      console.log(userCredential)
+      const userId = userCredential.user.uid;
+      console.log(userId)
+      // Fetch user data from Firestore to check user type
+      const userDoc = await getDoc(doc(db, 'patients', userId));
+      const userData = userDoc.data();
+      if (userDoc.exists() && userData?.type === 'client') {
+        if (userData.type === 'client') {
+          const payload = {
+            ...userData,
+            id:userId
+          }
+          saveUserInfo(payload)
+          message.success('Login successful! Redirecting to homepage...');
+          navigate(RouterUrl.ClientHome); 
+        } else {
+          message.success('Login successful!');
+          navigate(RouterUrl.Dashboard); // Or any other route for different user types
+        }
+      } else {
+        if(userId){
+          message.success('Login successful!');
+          navigate(RouterUrl.Dashboard); // Or any other route for different user types
+        }
+      }
+      
     } catch (error: any) {
       message.error(error.message || 'Login failed');
     } finally {
       setLoading(false);
     }
   };
-  
 
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -89,27 +115,34 @@ export const LoginPage: React.FC = () => {
             Login
           </Button>
         </Form>
+        <div className="text-center mt-4">
+          <p className="text-gray-500">
+            Don't have an account?{' '}
+            <Link to="/register" className="text-blue-600 hover:underline">
+              Register here
+            </Link>
+          </p>
+        </div>
       </div>
       <Modal
-          title="Reset Password"
-          open={isForgotPasswordModalVisible}
-          onOk={handleForgotPassword}
-          onCancel={handleCancelForgotPassword}
-          okButtonProps={{ loading: resetLoading }}
+        title="Reset Password"
+        open={isForgotPasswordModalVisible}
+        onOk={handleForgotPassword}
+        onCancel={handleCancelForgotPassword}
+        okButtonProps={{ loading: resetLoading }}
+      >
+        <Form.Item
+          label="Email"
+          rules={[{ required: true, message: 'Please input your email!' }]}
         >
-          <Form.Item
-            label="Email"
-            rules={[{ required: true, message: 'Please input your email!' }]}
-          >
-            <Input
-              type="email"
-              placeholder="Enter your email"
-              value={resetEmail}
-              onChange={(e) => setResetEmail(e.target.value)}
-            />
-          </Form.Item>
-        </Modal>
+          <Input
+            type="email"
+            placeholder="Enter your email"
+            value={resetEmail}
+            onChange={(e) => setResetEmail(e.target.value)}
+          />
+        </Form.Item>
+      </Modal>
     </div>
   );
 };
-

@@ -83,3 +83,15 @@
 .appointment-item {
   margin-bottom: 5px;
 }
+
+.ant-layout .ant-layout-sider-zero-width-trigger{
+  top: 8px !important;
+  background: #0284c7 !important;
+}
+.ant-layout .client.ant-layout-sider,.client .ant-menu-dark{
+  background: #0284c7 !important;
+}
+.client .ant-menu-dark .ant-menu-item-selected{
+  background: white !important;
+  color: #0284c7 !important;
+}

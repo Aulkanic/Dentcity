@@ -12,8 +12,6 @@ interface CustomerState {
 export interface CustomerSlice {
   user: CustomerState | null;
   saveUserInfo: (payload: any) => void;
-  selectChats: (payload: any) => void;
-  setOpenChats: (payload: any) => void;
   logoutUser: () => void;
 }
 
@@ -60,26 +58,6 @@ const createCustomerSlice: StateCreator<CustomerSlice> = (set) => ({
         },
       }));
     }
-  },
-  setOpenChats: async (payload: boolean) => {
-    set((state) => ({
-      ...state,
-      user: {
-        ...state.user,
-        isChatOpen: payload,
-        responseMsg: "",
-      },
-    }));
-  },
-  selectChats: async (payload: any) => {
-    set((state) => ({
-      ...state,
-      user: {
-        ...state.user,
-        conversationId: payload,
-        responseMsg: "",
-      },
-    }));
   },
   logoutUser: async () => {
     try {

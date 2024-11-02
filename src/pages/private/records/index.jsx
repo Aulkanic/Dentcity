@@ -13,9 +13,7 @@ export const PatientRecords = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
-  const [loading, setLoading] = useState(false); // New loading state
-
-  // Function to display notifications
+  const [loading, setLoading] = useState(false); 
   const openNotification = (type, message, description) => {
     notification[type]({
       message,
@@ -23,8 +21,6 @@ export const PatientRecords = () => {
       placement: 'topRight',
     });
   };
-
-  // Function to add or update a patient in Firestore
   const handleAddOrUpdatePatient = async (values) => {
     setLoading(true); // Set loading to true when adding/updating
     try {
@@ -62,8 +58,6 @@ export const PatientRecords = () => {
       setLoading(false); // Stop loading after operation
     }
   };
-
-  // Function to fetch all patient records from Firestore
   const fetchPatients = async () => {
     setLoading(true); // Set loading to true while fetching data
     try {
@@ -81,8 +75,6 @@ export const PatientRecords = () => {
       setLoading(false); // Stop loading after fetching data
     }
   };
-
-  // Fetch patient data on component mount
   useEffect(() => {
     fetchPatients();
   }, []);
@@ -90,8 +82,6 @@ export const PatientRecords = () => {
   const navigateToPatientDetails = (patientId) => {
     navigate(`/Dashboard/Record/patients/${patientId}`);
   };
-
-  // Columns for the Ant Design Table
   const columns = [
     { title: 'No.', dataIndex: 'key', key: 'key', align: 'center' }, // Row number column
     { title: 'Last Name', dataIndex: 'lastName', key: 'lastName' },
@@ -115,8 +105,6 @@ export const PatientRecords = () => {
       ),
     },
   ];
-
-  // Function to handle edit button click
   const handleEditPatient = (record) => {
     setIsEditing(true);
     setEditingPatient(record);
@@ -126,16 +114,12 @@ export const PatientRecords = () => {
       dateAdded: dayjs(record.dateAdded),
     });
   };
-
-  // Function to handle modal open for adding new patient
   const handleAddPatient = () => {
     setIsEditing(false);
     setEditingPatient(null);
     setIsModalVisible(true);
     form.resetFields();
   };
-
-  // Function to handle modal close
   const handleCancel = () => {
     setIsModalVisible(false);
     form.resetFields();
@@ -145,7 +129,6 @@ export const PatientRecords = () => {
   }
   return (
     <div className="p-6 mx-auto">
-      {/* Table to display patients */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold">Patient Records</h2>
         <Button type="primary" onClick={handleAddPatient}>
@@ -159,9 +142,6 @@ export const PatientRecords = () => {
           pagination={{ pageSize: 5 }}
           className="bg-white shadow-md rounded-md custom-table"
         />
-      
-
-      {/* Modal for adding or editing a patient */}
       <Modal
         title={isEditing ? 'Edit Patient Record' : 'Add Patient Record'}
         open={isModalVisible}

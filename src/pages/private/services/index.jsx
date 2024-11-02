@@ -1,8 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from 'react';
-import { Form, Input, Button, Table, Modal, notification } from 'antd';
+import { Form, Input, Button, Table, Modal, notification, Upload } from 'antd';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs } from 'firebase/firestore';
 import { db } from '../../../db'; // Adjust the path according to your project structure
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export const ServicesPage = () => {
   const [services, setServices] = useState([]);
@@ -11,6 +12,7 @@ export const ServicesPage = () => {
   const [editingService, setEditingService] = useState(null);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [fileList, setFileList] = useState([]);
 
   // Function to display notifications
   const openNotification = (type, message, description) => {
@@ -30,7 +32,7 @@ export const ServicesPage = () => {
         id: doc.id,
         ...doc.data(),
       }));
-      servicesList.shift()
+      servicesList?.shift()
       setServices(servicesList);
     } catch (error) {
       console.error('Error fetching services: ', error);
@@ -48,11 +50,22 @@ export const ServicesPage = () => {
   const handleAddOrUpdateService = async (values) => {
     setLoading(true);
     try {
+      let serviceLogoUrl = '';
+
+      // Upload service logo to Firebase Storage if a file is selected
+      if (fileList.length > 0) {
+        const storage = getStorage();
+        const logoRef = ref(storage, `serviceLogos/${fileList[0].name}`);
+        await uploadBytes(logoRef, fileList[0].originFileObj);
+        serviceLogoUrl = await getDownloadURL(logoRef);
+      }
+
       if (isEditing && editingService) {
         // Update service
         await updateDoc(doc(db, 'services', editingService.id), {
           serviceName: values.serviceName,
           price: values.price,
+          serviceLogo: serviceLogoUrl || editingService.serviceLogo, // Keep old logo if no new one uploaded
         });
         openNotification('success', 'Success', 'Service updated successfully!');
       } else {
@@ -60,12 +73,14 @@ export const ServicesPage = () => {
         await addDoc(collection(db, 'services'), {
           serviceName: values.serviceName,
           price: values.price,
+          serviceLogo: serviceLogoUrl,
         });
         openNotification('success', 'Success', 'Service added successfully!');
       }
       form.resetFields();
       setIsModalVisible(false);
       fetchServices();
+      setFileList([]); // Clear the file list
     } catch (error) {
       console.error('Error saving service: ', error);
       openNotification('error', 'Error', 'Failed to save service.');
@@ -95,6 +110,7 @@ export const ServicesPage = () => {
     setEditingService(record);
     setIsModalVisible(true);
     form.setFieldsValue(record);
+    setFileList([]); // Clear file list on edit
   };
 
   // Handle add service button click
@@ -103,18 +119,25 @@ export const ServicesPage = () => {
     setEditingService(null);
     setIsModalVisible(true);
     form.resetFields();
+    setFileList([]); // Clear file list on add
   };
 
   // Handle modal close
   const handleCancel = () => {
     setIsModalVisible(false);
     form.resetFields();
+    setFileList([]); // Clear file list on cancel
   };
 
   // Columns for the Ant Design Table
   const columns = [
     { title: 'Service Name', dataIndex: 'serviceName', key: 'serviceName' },
     { title: 'Price', dataIndex: 'price', key: 'price' },
+    {
+      title: 'Service Logo',
+      dataIndex: 'serviceLogo',
+      render: (text) => <img src={text} alt="Service Logo" style={{ width: '50px', height: '50px', borderRadius: '4px' }} />,
+    },
     {
       title: 'Actions',
       render: (text, record) => (
@@ -130,8 +153,8 @@ export const ServicesPage = () => {
     },
   ];
 
-  if(loading){
-    return <div className=" w-full min-h-[700px] flex justify-center items-center"><p className="loader" /></div>
+  if (loading) {
+    return <div className=" w-full min-h-[700px] flex justify-center items-center"><p className="loader" /></div>;
   }
 
   return (
@@ -143,15 +166,13 @@ export const ServicesPage = () => {
           Add Service
         </Button>
       </div>
-        <div className='w-full flex justify-center items-center'>
-        <Table
-          dataSource={services}
-          columns={columns}
-          rowKey="id"
-          pagination={{ pageSize: 5 }}
-          className="bg-white shadow-md rounded-md custom-table w-1/2"
-        />
-        </div>
+      <Table
+        dataSource={services}
+        columns={columns}
+        rowKey="id"
+        pagination={{ pageSize: 5 }}
+        className="bg-white shadow-md rounded-md custom-table w-full"
+      />
 
       {/* Modal for adding or editing a service */}
       <Modal
@@ -178,6 +199,20 @@ export const ServicesPage = () => {
             rules={[{ required: true, message: 'Please enter price' }]}
           >
             <Input type="number" />
+          </Form.Item>
+          <Form.Item
+            label="Service Logo"
+            rules={[{ required: true, message: 'Please upload service logo' }]}
+          >
+            <Upload
+              listType="picture"
+              beforeUpload={() => false}
+              onChange={({ fileList }) => setFileList(fileList)}
+              accept="image/*"
+              showUploadList={true}
+            >
+              <Button>Upload Logo</Button>
+            </Upload>
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={loading}>

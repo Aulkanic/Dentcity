@@ -16,7 +16,7 @@ const useStore = create<TAppSlices>()(
               ...createCustomerSlice(...args)
             }),
             {
-              name: 'SWAPCARD',
+              name: 'Dentcity',
             },
           ),
     )

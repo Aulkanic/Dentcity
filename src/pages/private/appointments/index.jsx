@@ -38,6 +38,7 @@ export const Appointments = () => {
         ...doc.data(),
       }));
       list.shift()
+      list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setAppointments(list);
 
       // Fetch all patients

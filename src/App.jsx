@@ -1,7 +1,7 @@
 import './App.css'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { RouterUrl } from './routes';
-import { AdminSide, Public } from './layout';
+import { AdminSide, Client, Public } from './layout';
 import { LoginPage } from './pages/index'
 import { Dashboard } from './pages/private/dashboard';
 import { PatientRecords } from './pages/private/records';
@@ -9,6 +9,10 @@ import { PatientDetails } from './pages/private/records/patientDetails';
 import { ServicesPage } from './pages/private/services';
 import { Appointments } from './pages/private/appointments';
 import { Reports } from './pages/private/reports';
+import { ClientDashboard } from './pages/private/client/dashboard';
+import { ClientAppointmentPage } from './pages/private/client/appointment';
+import { ClientServicesPage } from './pages/private/client/services';
+import { RegistrationPage } from './pages/public/registration';
 
 function App() {
   const router = createBrowserRouter([
@@ -17,6 +21,16 @@ function App() {
       element: <Public />,
       children: [
         { path: RouterUrl.Login, element: <LoginPage />},
+        { path: RouterUrl.Register, element: <RegistrationPage />},
+      ]
+    },
+    {
+      path:RouterUrl.Login,
+      element: <Client />,
+      children: [
+        { path: RouterUrl.ClientHome, element: <ClientDashboard />},
+        { path: RouterUrl.ClientAppoint, element: <ClientAppointmentPage />},
+        { path: RouterUrl.ClientService, element: <ClientServicesPage />},
       ]
     },
     {
