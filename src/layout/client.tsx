@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import { Layout, Menu, theme } from 'antd';
 import { Outlet, To, useLocation, useNavigate } from 'react-router-dom';
 import { RouterUrl } from '../routes';
 import { MdDashboard } from "react-icons/md";
 import { FaCalendarAlt } from "react-icons/fa";
+import { useMediaQuery } from 'react-responsive';
 import { RiServiceFill } from "react-icons/ri";
 
 const { Header, Content, Sider } = Layout;
@@ -18,6 +19,7 @@ export default function ClientSide() {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+  const isMobile = useMediaQuery({ maxWidth: 768 });
 
   const location = useLocation();
   const navigate = useNavigate(); // Hook to navigate
@@ -27,10 +29,16 @@ export default function ClientSide() {
     navigate(e.key); // Navigate to the selected key
   };
 
+  const siderStyle: CSSProperties = {
+    minHeight: '100vh',
+    zIndex: '999',
+    position: isMobile ? 'fixed' : 'relative', // Use fixed positioning on mobile
+  };
   return (
     <Layout className='min-h-screen client'>
       <Sider
         className='client'
+        style={siderStyle}
         breakpoint="lg"
         collapsedWidth="0"
         onBreakpoint={(broken) => {
