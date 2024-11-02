@@ -1,15 +1,17 @@
 import React from 'react';
 import { Layout, Menu, theme } from 'antd';
-import { UserOutlined, VideoCameraOutlined, UploadOutlined } from '@ant-design/icons';
 import { Outlet, To, useLocation, useNavigate } from 'react-router-dom';
 import { RouterUrl } from '../routes';
+import { MdDashboard } from "react-icons/md";
+import { FaCalendarAlt } from "react-icons/fa";
+import { RiServiceFill } from "react-icons/ri";
 
 const { Header, Content, Sider } = Layout;
 
 const items = [
-  { key: RouterUrl.ClientHome, icon: <UserOutlined />, label: 'Dashboard' },
-  { key:RouterUrl.ClientAppoint, icon: <VideoCameraOutlined />, label: 'Appointments' },
-  { key: RouterUrl.ClientService, icon: <UploadOutlined />, label: 'Services' },
+  { key: RouterUrl.ClientHome, icon: <MdDashboard />, label: 'Dashboard' },
+  { key:RouterUrl.ClientAppoint, icon: <FaCalendarAlt />, label: 'Appointments' },
+  { key: RouterUrl.ClientService, icon: <RiServiceFill />, label: 'Services' },
 ];
 
 export default function ClientSide() {
