@@ -2,27 +2,26 @@
 import { useState, useEffect } from 'react';
 import { Modal, Form, Input, TimePicker, Button, notification, Select, Card, Col, Row } from 'antd';
 import { getDocs, collection, addDoc } from 'firebase/firestore';
-import { db } from '../../../db'; // Adjust the import path as necessary
+import { db } from '../../../db';
 import { Calendar as BigCalendar, dateFnsLocalizer } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
-import { enUS } from 'date-fns/locale'; // Import locale
+import { enUS } from 'date-fns/locale'; 
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import dayjs from 'dayjs';
 import useStore from '../../../zustand/store/store';
 import { selector } from '../../../zustand/store/store.provider';
 
-// Setup date-fns localizer
 const localizer = dateFnsLocalizer({
   format,
   parse,
   startOfWeek,
   getDay,
-  locales: { 'en-US': enUS }, // Use the imported locale
+  locales: { 'en-US': enUS }, 
 });
 
 export const ClientAppointmentPage = () => {
   const user = useStore(selector('user'));
-  const clientId = user.info.id; // Get the user ID from the store
+  const clientId = user.info.id; 
   const [appointments, setAppointments] = useState([]);
   const [services, setServices] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -31,24 +30,18 @@ export const ClientAppointmentPage = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
-  // Fetch appointments and services
   const fetchAppointmentsAndServices = async () => {
     setLoading(true);
     try {
-      // Fetch appointments for the current user only
       const appointmentsSnapshot = await getDocs(collection(db, 'appointments'));
       const appointmentsList = appointmentsSnapshot.docs
         .map(doc => ({
           id: doc.id,
           ...doc.data(),
         }))
-        .filter(appt => appt.patientId === clientId); // Filter appointments by user ID
-
-      // Sort appointments by createdAt field
       appointmentsList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setAppointments(appointmentsList);
 
-      // Fetch all services
       const servicesSnapshot = await getDocs(collection(db, 'services'));
       const servicesList = servicesSnapshot.docs.map(doc => ({
         id: doc.id,
@@ -71,30 +64,44 @@ export const ClientAppointmentPage = () => {
     fetchAppointmentsAndServices();
   }, []);
 
-  // Handle saving the new appointment
   const handleSaveAppointment = async (values) => {
     setLoading(true);
     try {
       const { time, location, service } = values;
-
-      // Save the new appointment
+      const [startTime, endTime] = time;
+      const startTimeFormatted = dayjs(startTime, 'HH:mm');
+      const endTimeFormatted = dayjs(endTime, 'HH:mm');
+      const overlappingAppointment = appointments.find(appt => 
+        appt.date === selectedDate &&
+        (
+          (dayjs(appt.startTime, 'h:mm A').isBefore(endTimeFormatted) &&
+           dayjs(appt.endTime, 'h:mm A').isAfter(startTimeFormatted))
+        )
+      );
+      if (overlappingAppointment) {
+        notification.error({
+          message: 'Time Conflict',
+          description: 'Another appointment is already scheduled during this time range. Please select a different time.',
+        });
+        setLoading(false);
+        return;
+      }
       const appointmentRef = await addDoc(collection(db, 'appointments'), {
-        patientId: clientId, // Use the current user's ID
+        patientId: clientId, 
         date: selectedDate,
-        startTime: dayjs(time[0]).format('h:mm A'),
-        endTime: dayjs(time[1]).format('h:mm A'),
+        startTime: startTimeFormatted.format('h:mm A'),
+        endTime: endTimeFormatted.format('h:mm A'),
         location,
         service,
         createdAt: dayjs().format(),
         status: 'Pending'
       });
 
-      // Create notification for admin
       await addDoc(collection(db, 'notifications'), {
         appointmentId: appointmentRef.id,
         message: `New appointment scheduled for ${service} on ${selectedDate} from ${dayjs(time[0]).format('h:mm A')} to ${dayjs(time[1]).format('h:mm A')}`,
         createdAt: dayjs().format(),
-        read: false // Set initial notification status as unread
+        read: false 
       });
 
       notification.success({
@@ -102,7 +109,7 @@ export const ClientAppointmentPage = () => {
         description: 'Appointment added successfully!',
       });
       setIsConfirming(false);
-      fetchAppointmentsAndServices(); // Refresh the data
+      fetchAppointmentsAndServices(); 
     } catch (error) {
       console.error('Error saving appointment:', error);
       notification.error({
@@ -113,9 +120,7 @@ export const ClientAppointmentPage = () => {
       setLoading(false);
     }
   };
-
-  // Convert appointments to events for the calendar
-  const events = appointments.map(appt => ({
+  const events = appointments?.filter(appt => appt.patientId === clientId)?.map(appt => ({
     id: appt.id,
     title: `${appt.service} - ${appt.startTime} - ${appt.location}`,
     start: new Date(`${appt.date}T${dayjs(appt.startTime, 'h:mm A').format('HH:mm:ss')}`),
@@ -124,23 +129,11 @@ export const ClientAppointmentPage = () => {
     service: appt.service,
   }));
 
-  // Check if the selected date already has an appointment
-  const hasAppointmentOnDate = (date) => {
-    return appointments.some(appt => appt.date === format(date, 'yyyy-MM-dd'));
-  };
 
-  // Handle date slot selection
   const handleSelectSlot = (slotInfo) => {
     const date = slotInfo.start;
-    if (hasAppointmentOnDate(date)) {
-      notification.error({
-        message: 'Date Unavailable',
-        description: `This date (${format(date, 'yyyy-MM-dd')}) already has an appointment.`,
-      });
-    } else {
       setSelectedDate(format(date, 'yyyy-MM-dd'));
       setIsConfirming(true);
-    }
   };
 
   if (loading) {
@@ -149,7 +142,6 @@ export const ClientAppointmentPage = () => {
 
   return (
     <div className="p-4 md:p-8">
-      {/* Button to open calendar modal */}
       <div className='flex w-full justify-end'>
         <Button 
           type="primary" 
@@ -160,9 +152,8 @@ export const ClientAppointmentPage = () => {
         </Button>
       </div>
 
-      {/* Cards for all appointments */}
       <Row gutter={[16, 16]}>
-        {appointments.map((appointment) => (
+        {appointments?.filter(appt => appt.patientId === clientId)?.map((appointment) => (
           <Col xs={24} sm={12} md={8} key={appointment.id}>
             <Card title={`Appointment on ${appointment.date}`} bordered>
               <p><strong>Service:</strong> {appointment.service}</p>
@@ -174,14 +165,13 @@ export const ClientAppointmentPage = () => {
         ))}
       </Row>
 
-      {/* Calendar Modal for selecting date */}
       <Modal
         title="Select Appointment Date"
         open={isCalendarVisible}
         onCancel={() => setIsCalendarVisible(false)}
         footer={null}
         width="100%"
-        style={{ maxWidth: '1200px' }} // Limit max width for larger screens
+        style={{ maxWidth: '1200px' }}
       >
         <BigCalendar
           localizer={localizer}
@@ -194,17 +184,15 @@ export const ClientAppointmentPage = () => {
         />
       </Modal>
 
-      {/* Appointment Details Form Modal */}
       <Modal
         title={`Add Appointment for ${selectedDate}`}
         open={isConfirming}
         onCancel={() => setIsConfirming(false)}
         footer={null}
         width="100%"
-        style={{ maxWidth: '600px' }} // Limit max width for larger screens
+        style={{ maxWidth: '600px' }}
       >
         <div>
-          {/* Form to add a new appointment */}
           <Form form={form} onFinish={handleSaveAppointment}>
             <Form.Item
               label="Appointment Time"

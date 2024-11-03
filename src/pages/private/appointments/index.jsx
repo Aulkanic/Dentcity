@@ -68,31 +68,45 @@ export const Appointments = () => {
   useEffect(() => {
     fetchAppointmentsAndPatients();
   }, []);
-
-  // Handle saving the new appointment
   const handleSaveAppointment = async (values) => {
     setLoading(true);
     try {
       const { patientId, time, location, service } = values;
-
-      // Save the new appointment
+      const [startTime, endTime] = time;
+      const startTimeFormatted = dayjs(startTime, 'HH:mm');
+      const endTimeFormatted = dayjs(endTime, 'HH:mm');
+      const overlappingAppointment = appointments.find(appt => 
+        appt.date === selectedDate &&
+        (
+          (dayjs(appt.startTime, 'h:mm A').isBefore(endTimeFormatted) &&
+           dayjs(appt.endTime, 'h:mm A').isAfter(startTimeFormatted))
+        )
+      );
+      if (overlappingAppointment) {
+        notification.error({
+          message: 'Time Conflict',
+          description: 'Another appointment is already scheduled during this time range. Please select a different time.',
+        });
+        setLoading(false);
+        return;
+      }
       await addDoc(collection(db, 'appointments'), {
         patientId,
         date: selectedDate,
-        startTime: dayjs(time[0]).format('h:mm A'),
-        endTime: dayjs(time[1]).format('h:mm A'),
+        startTime: startTimeFormatted.format('h:mm A'),
+        endTime: endTimeFormatted.format('h:mm A'),
         location,
         service,
         createdAt: dayjs().format(),
-        status:'Pending'
+        status: 'Pending'
       });
-
+  
       notification.success({
         message: 'Success',
         description: 'Appointment added successfully!',
       });
       setIsConfirming(false);
-      fetchAppointmentsAndPatients(); // Refresh the data
+      fetchAppointmentsAndPatients(); 
     } catch (error) {
       console.error('Error saving appointment:', error);
       notification.error({
@@ -103,8 +117,7 @@ export const Appointments = () => {
       setLoading(false);
     }
   };
-
-  // Convert appointments to events for the calendar
+  
   const events = appointments.map(appt => ({
     id: appt.id,
     title: `${patients.find(patient => patient.id === appt.patientId)?.firstName} ${patients.find(patient => patient.id === appt.patientId)?.lastName} - ${appt.service}`,
@@ -114,12 +127,7 @@ export const Appointments = () => {
     service: appt.service,
   }));
 
-  // Check if the selected date already has an appointment
-  const hasAppointmentOnDate = (date) => {
-    return appointments.some(appt => appt.date === format(date, 'yyyy-MM-dd'));
-  };
 
-  // Handle event selection
   const handleSelectEvent = (event) => {
     notification.info({
       message: 'Appointment Info',
@@ -127,27 +135,16 @@ export const Appointments = () => {
     });
   };
 
-  // Handle date slot selection
   const handleSelectSlot = (slotInfo) => {
     const date = slotInfo.start;
-    if (hasAppointmentOnDate(date)) {
-      notification.error({
-        message: 'Date Unavailable',
-        description: `This date (${format(date, 'yyyy-MM-dd')}) already has an appointment.`,
-      });
-    } else {
       setSelectedDate(format(date, 'yyyy-MM-dd'));
       setIsConfirming(true);
-    }
   };
 
   const handleStatusChange = async (appointmentId, newStatus) => {
     setLoading(true);
     try {
-      // Get a reference to the specific appointment document
       const appointmentRef = doc(db, 'appointments', appointmentId);
-      
-      // Update the appointment's status
       await updateDoc(appointmentRef, { status: newStatus });
 
       notification.success({
@@ -155,7 +152,7 @@ export const Appointments = () => {
         description: 'Appointment status updated successfully!',
       });
 
-      fetchAppointmentsAndPatients(); // Refresh the data
+      fetchAppointmentsAndPatients();
     } catch (error) {
       console.error('Error updating status:', error);
       notification.error({
@@ -173,14 +170,11 @@ export const Appointments = () => {
 
   return (
         <div>
-          {/* Button to open calendar modal */}
           <div className='flex w-full justify-end'>
           <Button type="primary" onClick={() => setIsCalendarVisible(true)} className="mb-4">
             Add Appointment
           </Button>
           </div>
-
-          {/* Table of all appointments */}
           <Table
             dataSource={appointments}
             columns={[
@@ -217,8 +211,6 @@ export const Appointments = () => {
             pagination={false}
             className="custom-table mb-4 bg-white shadow-md rounded-md"
           />
-
-          {/* Calendar Modal for selecting date */}
           <Modal
             title="Select Appointment Date"
             open={isCalendarVisible}
@@ -237,8 +229,6 @@ export const Appointments = () => {
               onSelectEvent={handleSelectEvent}
             />
           </Modal>
-
-          {/* Appointment Details Form Modal */}
           <Modal
             title={`Add Appointment for ${selectedDate}`}
             open={isConfirming}
@@ -246,7 +236,6 @@ export const Appointments = () => {
             footer={null}
           >
             <div>
-              {/* Form to add a new appointment */}
               <Form form={form} onFinish={handleSaveAppointment}>
                 <Form.Item
                   label="Patient"

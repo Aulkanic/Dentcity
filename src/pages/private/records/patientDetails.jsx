@@ -8,8 +8,8 @@ import { Calendar as BigCalendar, momentLocalizer } from 'react-big-calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import dayjs from 'dayjs';
 import moment from 'moment';
+import { format } from 'date-fns';
 
-// Set up localizer
 const localizer = momentLocalizer(moment);
 
 export const PatientDetails = () => {
@@ -38,13 +38,13 @@ export const PatientDetails = () => {
       setPatient({ id: patientDoc.id, ...patientDoc.data() });
 
       const querySnapshot = await getDocs(collection(db, 'appointments'));
-      const patientAppointments = querySnapshot.docs
-        .map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }))
-        .filter((appt) => appt.patientId === id);
-      setAppointments(patientAppointments);
+      const list = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      list.shift()
+      list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setAppointments(list);
 
       const serviceSnapshot = await getDocs(collection(db, 'services'));
       const servicesList = serviceSnapshot.docs.map(doc => ({
@@ -66,7 +66,7 @@ export const PatientDetails = () => {
   }, [id]);
 
   const handleSelectSlot = ({ start }) => {
-    setSelectedDate(start);
+    setSelectedDate(format(start, 'yyyy-MM-dd'));
     setIsAppointing(false);
     setIsConfirming(true);
   };
@@ -74,35 +74,48 @@ export const PatientDetails = () => {
   const handleSaveAppointment = async (values) => {
     setLoading(true);
     try {
-      const appointmentDate = dayjs(selectedDate).format('YYYY-MM-DD');
-      
-      const isConflict = appointments.some(appt =>
-        dayjs(appt.date).isSame(appointmentDate, 'day')
+      const { time, location, service } = values;
+      const [startTime, endTime] = time;
+      const startTimeFormatted = dayjs(startTime, 'HH:mm');
+      const endTimeFormatted = dayjs(endTime, 'HH:mm');
+      const overlappingAppointment = appointments.find(appt => 
+        appt.date === selectedDate &&
+        (
+          (dayjs(appt.startTime, 'h:mm A').isBefore(endTimeFormatted) &&
+           dayjs(appt.endTime, 'h:mm A').isAfter(startTimeFormatted))
+        )
       );
-      
-      if (isConflict) {
-        openNotification('error', 'Error', 'Appointment date conflicts with an existing appointment.');
+      if (overlappingAppointment) {
+        notification.error({
+          message: 'Time Conflict',
+          description: 'Another appointment is already scheduled during this time range. Please select a different time.',
+        });
         setLoading(false);
         return;
       }
-      
       await addDoc(collection(db, 'appointments'), {
-        patientId: id,
-        date: appointmentDate,
-        startTime: values.time[0].format('h:mm A'),
-        endTime: values.time[1].format('h:mm A'),
-        location: values.location,
-        service: values.service,
+        patientId:id,
+        date: selectedDate,
+        startTime: startTimeFormatted.format('h:mm A'),
+        endTime: endTimeFormatted.format('h:mm A'),
+        location,
+        service,
         createdAt: dayjs().format(),
-        status:'Pending'
+        status: 'Pending'
       });
-
-      openNotification('success', 'Success', 'Appointment added successfully!');
+  
+      notification.success({
+        message: 'Success',
+        description: 'Appointment added successfully!',
+      });
       setIsConfirming(false);
-      fetchPatientDetails();
+      fetchPatientDetails(); 
     } catch (error) {
-      console.error('Error saving appointment: ', error);
-      openNotification('error', 'Error', 'Failed to save appointment.');
+      console.error('Error saving appointment:', error);
+      notification.error({
+        message: 'Error',
+        description: 'Failed to save appointment.',
+      });
     } finally {
       setLoading(false);
     }
@@ -153,7 +166,7 @@ export const PatientDetails = () => {
                 <h2 className="text-xl font-semibold">Appointment History</h2>
               </div>
               <Table
-                dataSource={appointments}
+                dataSource={appointments?.filter((appt) => appt.patientId === id)}
                 columns={[
                   { title: 'Date', dataIndex: 'date', key: 'date' },
                   { title: 'Start Time', dataIndex: 'startTime', key: 'startTime' },
