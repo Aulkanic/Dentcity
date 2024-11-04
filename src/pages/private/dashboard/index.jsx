@@ -159,8 +159,8 @@ export const Dashboard = () => {
               const patientName = patient ? `${patient.firstName} ${patient.lastName}` : 'Unknown Patient';
               
               return (
-                <List.Item>
-                  <div>
+                <List.Item >
+                  <div className="pl-6 text-left">
                     <strong>{patientName}</strong> {/* Show patient name */}
                     <p>{new Date(item.date).toLocaleDateString()}</p> {/* Display readable date */}
                     <p>Start Time: {item.startTime}</p> {/* Show start time */}

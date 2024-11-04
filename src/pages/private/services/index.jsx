@@ -1,9 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from 'react';
-import { Form, Input, Button, Table, Modal, notification, Upload } from 'antd';
+import { Form, Input, Button, Table, Modal, notification } from 'antd';
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs } from 'firebase/firestore';
-import { db } from '../../../db'; // Adjust the path according to your project structure
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db } from '../../../db';
 
 export const ServicesPage = () => {
   const [services, setServices] = useState([]);
@@ -12,7 +11,6 @@ export const ServicesPage = () => {
   const [editingService, setEditingService] = useState(null);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [fileList, setFileList] = useState([]);
 
   // Function to display notifications
   const openNotification = (type, message, description) => {
@@ -50,22 +48,13 @@ export const ServicesPage = () => {
   const handleAddOrUpdateService = async (values) => {
     setLoading(true);
     try {
-      let serviceLogoUrl = '';
 
-      // Upload service logo to Firebase Storage if a file is selected
-      if (fileList.length > 0) {
-        const storage = getStorage();
-        const logoRef = ref(storage, `serviceLogos/${fileList[0].name}`);
-        await uploadBytes(logoRef, fileList[0].originFileObj);
-        serviceLogoUrl = await getDownloadURL(logoRef);
-      }
 
       if (isEditing && editingService) {
         // Update service
         await updateDoc(doc(db, 'services', editingService.id), {
           serviceName: values.serviceName,
           price: values.price,
-          serviceLogo: serviceLogoUrl || editingService.serviceLogo, // Keep old logo if no new one uploaded
         });
         openNotification('success', 'Success', 'Service updated successfully!');
       } else {
@@ -73,14 +62,12 @@ export const ServicesPage = () => {
         await addDoc(collection(db, 'services'), {
           serviceName: values.serviceName,
           price: values.price,
-          serviceLogo: serviceLogoUrl,
         });
         openNotification('success', 'Success', 'Service added successfully!');
       }
       form.resetFields();
       setIsModalVisible(false);
       fetchServices();
-      setFileList([]); // Clear the file list
     } catch (error) {
       console.error('Error saving service: ', error);
       openNotification('error', 'Error', 'Failed to save service.');
@@ -110,7 +97,7 @@ export const ServicesPage = () => {
     setEditingService(record);
     setIsModalVisible(true);
     form.setFieldsValue(record);
-    setFileList([]); // Clear file list on edit
+
   };
 
   // Handle add service button click
@@ -118,15 +105,13 @@ export const ServicesPage = () => {
     setIsEditing(false);
     setEditingService(null);
     setIsModalVisible(true);
-    form.resetFields();
-    setFileList([]); // Clear file list on add
+    form.resetFields(); 
   };
 
   // Handle modal close
   const handleCancel = () => {
     setIsModalVisible(false);
     form.resetFields();
-    setFileList([]); // Clear file list on cancel
   };
 
   // Columns for the Ant Design Table
@@ -199,20 +184,6 @@ export const ServicesPage = () => {
             rules={[{ required: true, message: 'Please enter price' }]}
           >
             <Input type="number" />
-          </Form.Item>
-          <Form.Item
-            label="Service Logo"
-            rules={[{ required: true, message: 'Please upload service logo' }]}
-          >
-            <Upload
-              listType="picture"
-              beforeUpload={() => false}
-              onChange={({ fileList }) => setFileList(fileList)}
-              accept="image/*"
-              showUploadList={true}
-            >
-              <Button>Upload Logo</Button>
-            </Upload>
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={loading}>

@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from 'react';
 import { Modal, Form, Input, TimePicker, Button, notification, Select, Card, Col, Row } from 'antd';
 import { getDocs, collection, addDoc } from 'firebase/firestore';
@@ -12,7 +11,7 @@ import useStore from '../../../zustand/store/store';
 import { selector } from '../../../zustand/store/store.provider';
 
 const localizer = dateFnsLocalizer({
-  format,
+  format, 
   parse,
   startOfWeek,
   getDay,
@@ -34,11 +33,10 @@ export const ClientAppointmentPage = () => {
     setLoading(true);
     try {
       const appointmentsSnapshot = await getDocs(collection(db, 'appointments'));
-      const appointmentsList = appointmentsSnapshot.docs
-        .map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }))
+      const appointmentsList = appointmentsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
       appointmentsList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setAppointments(appointmentsList);
 
@@ -47,7 +45,7 @@ export const ClientAppointmentPage = () => {
         id: doc.id,
         ...doc.data()
       }));
-      servicesList?.shift()
+      servicesList.shift();
       setServices(servicesList);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -120,6 +118,13 @@ export const ClientAppointmentPage = () => {
       setLoading(false);
     }
   };
+
+  const handleSelectDate = (slotInfo) => {
+    const date = slotInfo.start;
+    setSelectedDate(dayjs(date).format('YYYY-MM-DD'));
+    setIsConfirming(true);
+  };
+
   const events = appointments?.filter(appt => appt.patientId === clientId)?.map(appt => ({
     id: appt.id,
     title: `${appt.service} - ${appt.startTime} - ${appt.location}`,
@@ -128,17 +133,6 @@ export const ClientAppointmentPage = () => {
     location: appt.location,
     service: appt.service,
   }));
-
-
-  const handleSelectSlot = (slotInfo) => {
-    const date = slotInfo.start;
-      setSelectedDate(format(date, 'yyyy-MM-dd'));
-      setIsConfirming(true);
-  };
-
-  if (loading) {
-    return <div className="w-full min-h-[700px] flex justify-center items-center"><p className="loader" /></div>;
-  }
 
   return (
     <div className="p-4 md:p-8">
@@ -180,7 +174,8 @@ export const ClientAppointmentPage = () => {
           endAccessor="end"
           style={{ height: 600 }}
           selectable
-          onSelectSlot={handleSelectSlot}
+          onSelectSlot={handleSelectDate}
+          dayLayoutAlgorithm="no-overlap"
         />
       </Modal>
 
