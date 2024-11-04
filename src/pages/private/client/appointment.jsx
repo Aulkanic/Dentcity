@@ -166,16 +166,20 @@ export const ClientAppointmentPage = () => {
         footer={null}
         width="100%"
         style={{ maxWidth: '1200px' }}
+        bodyStyle={{ padding: 0 }}
+        centered
       >
         <BigCalendar
           localizer={localizer}
           events={events}
           startAccessor="start"
           endAccessor="end"
-          style={{ height: 600 }}
+          style={{ height: '70vh', padding: '10px' }}
           selectable
           onSelectSlot={handleSelectDate}
           dayLayoutAlgorithm="no-overlap"
+          views={['month', 'week', 'day']}
+          popup={true}
         />
       </Modal>
 
