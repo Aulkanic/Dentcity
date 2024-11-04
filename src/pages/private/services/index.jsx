@@ -119,11 +119,6 @@ export const ServicesPage = () => {
     { title: 'Service Name', dataIndex: 'serviceName', key: 'serviceName' },
     { title: 'Price', dataIndex: 'price', key: 'price' },
     {
-      title: 'Service Logo',
-      dataIndex: 'serviceLogo',
-      render: (text) => <img src={text} alt="Service Logo" style={{ width: '50px', height: '50px', borderRadius: '4px' }} />,
-    },
-    {
       title: 'Actions',
       render: (text, record) => (
         <div>
