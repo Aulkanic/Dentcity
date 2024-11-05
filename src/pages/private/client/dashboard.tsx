@@ -33,7 +33,6 @@ export const ClientDashboard = () => {
         <Col xs={24} sm={12} md={8}>
           <Card title="Account Status" bordered={true} className="shadow-md">
             <p><strong>Account Type:</strong> Client</p>
-            <p><strong>Status:</strong> {client.info?.isVerified ? 'Verified' : 'Not Verified'}</p>
             <p><strong>Date Created:</strong> {client.info?.dateAdded}</p>
           </Card>
         </Col>
